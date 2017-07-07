@@ -1,0 +1,6 @@
+logs
+target
+/.idea
+/.idea_modules
+*.iml
+*.log
