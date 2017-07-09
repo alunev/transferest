@@ -1,5 +1,8 @@
 package org.alunev.transferest.model;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -7,90 +10,33 @@ import java.sql.Timestamp;
  * User account - has single currency, balance can't be < 0
  * One User may have many Accounts. One Account belongs to exactly one User.
  */
+
+@Builder(toBuilder = true)
 public class Account {
+    @Getter
     private final long id;
 
+    @Getter
+    private final long ownerId;
+
+    @Getter
     private final String number;
 
+    @Getter
     private final BigDecimal balance;
 
+    @Getter
     private final String currency;
 
+    @Getter
     private final Timestamp updateTs;
 
-    private Account(long id, String number, BigDecimal balance, String currency, Timestamp updateTs) {
+    private Account(long id, long ownerId, String number, BigDecimal balance, String currency, Timestamp updateTs) {
         this.id = id;
+        this.ownerId = ownerId;
         this.number = number;
         this.balance = balance;
         this.currency = currency;
         this.updateTs = updateTs;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public Timestamp getUpdateTs() {
-        return updateTs;
-    }
-
-    public static class Builder {
-        private long id;
-        private String number;
-        private BigDecimal balance;
-        private String currency;
-        private Timestamp updateTs;
-
-        public Builder() {
-        }
-
-        public Builder(Account account) {
-            this.id = account.id;
-            this.number = account.number;
-            this.balance = account.balance;
-            this.currency = account.currency;
-            this.updateTs = account.updateTs;
-        }
-
-        public Builder setId(long id) {
-            this.id = id;
-            return this;
-        }
-
-        public Builder setNumber(String number) {
-            this.number = number;
-            return this;
-        }
-
-        public Builder setBalance(BigDecimal balance) {
-            this.balance = balance;
-            return this;
-        }
-
-        public Builder setCurrency(String currency) {
-            this.currency = currency;
-            return this;
-        }
-
-        public Builder setUpdateTs(Timestamp updateTs) {
-            this.updateTs = updateTs;
-            return this;
-        }
-
-        public Account build() {
-            return new Account(id, number, balance, currency, updateTs);
-        }
     }
 }

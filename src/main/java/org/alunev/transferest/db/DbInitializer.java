@@ -18,31 +18,43 @@ public class DbInitializer {
     public void initSchema() {
         try (Connection con = sql2o.open()) {
             con.createQuery("create table users (id bigint identity primary key, name varchar(256))",
-                    "create table users")
-                    .executeUpdate();
-
-            con.createQuery("create table transactions (" +
-                            "id bigint identity primary key, " +
-                            "name varchar(256), " +
-                            "senderAccId bigint, " +
-                            "receiverAccId bigint, " +
-                            "sendAmount numeric, " +
-                            "receiveAmount numeric, " +
-                            "updateTs timestamp(3)" +
-                            ")",
-                    "create table transactions")
-                    .executeUpdate();
+                            "create table users"
+            ).executeUpdate();
 
             con.createQuery("create table accounts (" +
                             "id bigint identity primary key, " +
+                            "ownerId bigint," +
                             "number varchar(256), " +
-                            "balance bigint, " +
+                            "balance numeric(20, 2), " +
                             "currency varchar(3), " +
                             "updateTs timestamp(3)" +
                             ")",
-                    "create table accounts")
-                    .executeUpdate();
+                            "create table accounts"
+            ).executeUpdate();
 
+            con.createQuery("create table transactions (" +
+                            "id bigint identity primary key, " +
+                            "senderAccId bigint, " +
+                            "receiverAccId bigint, " +
+                            "sendAmount numeric(20, 2), " +
+                            "receiveAmount numeric(20, 2), " +
+                            "updateTs timestamp(3)" +
+                            ")",
+                            "create table transactions"
+            ).executeUpdate();
+        }
+    }
+
+    public void dropSchema() {
+        try (Connection con = sql2o.open()) {
+            con.createQuery("drop table users")
+               .executeUpdate();
+
+            con.createQuery("drop table transactions")
+               .executeUpdate();
+
+            con.createQuery("drop table accounts")
+               .executeUpdate();
         }
     }
 }

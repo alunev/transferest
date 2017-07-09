@@ -6,7 +6,9 @@ import com.typesafe.config.ConfigFactory;
 import org.alunev.transferest.db.ConfSql2oFactory;
 import org.alunev.transferest.db.DbInitializer;
 import org.alunev.transferest.db.Sql2oFactory;
-import org.alunev.transferest.service.UserService;
+import org.alunev.transferest.service.GenerationService;
+import org.alunev.transferest.service.dbstore.UserService;
+import org.alunev.transferest.service.processor.TransactionProcessor;
 
 
 public class TransfersModule extends AbstractModule {
@@ -16,6 +18,10 @@ public class TransfersModule extends AbstractModule {
         bind(Sql2oFactory.class).to(ConfSql2oFactory.class);
 
         bind(DbInitializer.class);
-        bind(UserService.class).asEagerSingleton();
+        bind(SparkApp.class);
+
+        bind(UserService.class);
+        bind(GenerationService.class);
+        bind(TransactionProcessor.class);
     }
 }

@@ -1,12 +1,17 @@
 package org.alunev.transferest.model;
 
+import lombok.Builder;
+import lombok.Getter;
+
 /**
  * User, how may have some accounts
  */
+@Builder(toBuilder = true)
 public class User {
-
+    @Getter
     private final long id;
 
+    @Getter
     private final String name;
 
     private User(long id, String name) {
@@ -14,43 +19,7 @@ public class User {
         this.name = name;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public static class UserBuilder {
-        private long id = -1;
-        private String name;
-
-        public UserBuilder() {
-        }
-
-        public UserBuilder(User user) {
-            this.id = user.getId();
-            this.name = user.getName();
-        }
-
-        public UserBuilder setId(long id) {
-            this.id = id;
-            return this;
-        }
-
-        public UserBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public User build() {
-            return new User(id, name);
-        }
-
-
-        public static User userWithName(String name) {
-            return new UserBuilder().setName(name).build();
-        }
+    public static User withName(String name) {
+        return User.builder().name(name).build();
     }
 }

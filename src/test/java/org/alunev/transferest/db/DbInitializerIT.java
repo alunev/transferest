@@ -10,7 +10,9 @@ import org.junit.Test;
 public class DbInitializerIT {
     @Test
     public void initSchemaWorksWithNoExceptions() throws Exception {
-        new DbInitializer(new TestSql2oFactory()).initSchema();
-    }
+        DbInitializer dbInitializer = new DbInitializer(new TestSql2oFactory());
 
+        dbInitializer.initSchema();
+        dbInitializer.dropSchema();
+    }
 }
