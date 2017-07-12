@@ -5,11 +5,15 @@ import spark.ResponseTransformer;
 
 public class JsonUtil {
 
-  public static String toJson(Object object) {
-    return new Gson().toJson(object);
-  }
+    public static String toJson(Object object) {
+        return new Gson().toJson(object);
+    }
 
-  public static ResponseTransformer toJson() {
-    return JsonUtil::toJson;
-  }
+    public static <T> T fromJson(String s, Class<T> tClass) {
+        return new Gson().fromJson(s, tClass);
+    }
+
+    public static ResponseTransformer toJson() {
+        return JsonUtil::toJson;
+    }
 }

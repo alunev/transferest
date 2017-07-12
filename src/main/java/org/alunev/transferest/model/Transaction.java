@@ -2,7 +2,6 @@ package org.alunev.transferest.model;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.alunev.transferest.service.processor.TxStatus;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

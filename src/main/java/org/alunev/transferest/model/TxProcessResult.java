@@ -1,4 +1,4 @@
-package org.alunev.transferest.service.processor;
+package org.alunev.transferest.model;
 
 import lombok.Getter;
 import lombok.ToString;

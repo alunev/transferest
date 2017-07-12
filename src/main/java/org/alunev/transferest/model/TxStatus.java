@@ -1,4 +1,4 @@
-package org.alunev.transferest.service.processor;
+package org.alunev.transferest.model;
 
 public enum  TxStatus {
     ACCEPTED,

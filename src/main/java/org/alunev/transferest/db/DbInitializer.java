@@ -17,7 +17,10 @@ public class DbInitializer {
 
     public void initSchema() {
         try (Connection con = sql2o.open()) {
-            con.createQuery("create table users (id bigint identity primary key, name varchar(256))",
+            con.createQuery("create table users ("
+                            + "id bigint identity primary key, "
+                            + "name varchar(256) not null unique"
+                            + ")",
                             "create table users"
             ).executeUpdate();
 

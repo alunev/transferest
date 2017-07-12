@@ -18,16 +18,23 @@ public class AccountService {
         this.sql2o = sql2oFactory.createSql2o();
     }
 
-    public List<Account> getByUserId(String userId) {
+    public List<Account> getByUserId(long userId) {
         List<Account> accounts;
         try (Connection con = sql2o.open()) {
-            accounts = con.createQuery(
-                    "select * from accounts where ownerId = :ownerId",
-                    "select_accounts_for_user"
-            )
-                          .addParameter("ownerId", userId)
-                          .executeAndFetch(Account.class);
+            accounts = getByUserId(userId, con);
         }
+
+        return accounts;
+    }
+
+    private List<Account> getByUserId(long userId, Connection con) {
+        List<Account> accounts;
+        accounts = con.createQuery(
+                "select * from accounts where ownerId = :ownerId",
+                "select_accounts_for_user"
+        )
+                      .addParameter("ownerId", userId)
+                      .executeAndFetch(Account.class);
 
         return accounts;
     }
@@ -47,15 +54,11 @@ public class AccountService {
         }
 
         return account.toBuilder()
-                .id(key)
-                .build();
+                      .id(key)
+                      .build();
     }
 
-    public Optional<Account> getById(String userId, String accId) {
-        return getById(accId);
-    }
-
-    public Optional<Account> getById(String id) {
+    public Optional<Account> getById(long id) {
         List<Account> accounts;
         try (Connection con = sql2o.open()) {
             accounts = con.createQuery(

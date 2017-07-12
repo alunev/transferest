@@ -6,6 +6,7 @@ import org.alunev.transferest.model.User.UserBuilder;
 import org.alunev.transferest.service.dbstore.UserService;
 import org.junit.Before;
 import org.junit.Test;
+import org.sql2o.Sql2oException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -24,8 +25,6 @@ public class UserServiceIT extends ServiceIT {
 
     @Test
     public void canSaveUsers() throws Exception {
-        sql2oFactory = new TestSql2oFactory();
-
         User user = userService.save(User.withName("Bob"));
 
         assertThat(user.getId()).isEqualTo(0);
@@ -43,4 +42,9 @@ public class UserServiceIT extends ServiceIT {
         assertThat(user.getName()).isEqualTo("Bob-2");
     }
 
+    @Test(expected = Sql2oException.class)
+    public void errorOnDuplicateUser() throws Exception {
+        userService.save(User.withName("Bob"));
+        userService.save(User.withName("Bob"));
+    }
 }

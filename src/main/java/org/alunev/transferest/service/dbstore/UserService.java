@@ -46,20 +46,39 @@ public class UserService {
         }
 
         return user.toBuilder()
-                .id(key)
-                .build();
+                   .id(key)
+                   .build();
     }
 
-    public Optional<User> getById(String id) {
-        List<User> users;
+    public Optional<User> getById(long id) {
+        Optional<User> user;
         try (Connection con = sql2o.open()) {
-            users = con.createQuery(
-                    "select * from users where id = :id",
-                    "select_user"
-            )
-                       .addParameter("id", Long.parseLong(id))
-                       .executeAndFetch(User.class);
+            user = getById(id, con);
         }
+
+        return user;
+    }
+
+    public Optional<User> getById(long id, Connection con) {
+        List<User> users;
+        users = con.createQuery(
+                "select * from users where id = :id",
+                "select_user"
+        )
+                   .addParameter("id", id)
+                   .executeAndFetch(User.class);
+
+        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
+    }
+
+    public Optional<User> getByName(String name, Connection con) {
+        List<User> users;
+        users = con.createQuery(
+                "select * from users where name = :name",
+                "select_user_by_name"
+        )
+                   .addParameter("name", name)
+                   .executeAndFetch(User.class);
 
         return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
