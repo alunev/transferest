@@ -29,6 +29,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-template-velocity</artifactId>
+            <version>2.5.5</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.despegar</groupId>
             <artifactId>spark-test</artifactId>
             <version>1.1.4</version>

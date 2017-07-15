@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import org.alunev.transferest.model.Account;
 import org.alunev.transferest.model.User;
+import org.alunev.transferest.model.error.TransferException;
 import org.alunev.transferest.service.dbstore.AccountService;
 import org.alunev.transferest.service.dbstore.UserService;
 
@@ -11,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.IntStream;
 
 public class GenerationService {
     private final UserService userService;
@@ -24,26 +24,27 @@ public class GenerationService {
         this.accountService = accountService;
     }
 
-    public List<String> generateSomeUsersWithAccounts() {
+    public List<String> generateSomeUsersWithAccounts() throws TransferException {
         List<String> names = Lists.newArrayList("Bill", "Novella", "Mina", "Ed", "Niki",
-                                                "Kieth", "Babette", "Edgar", "Detra", "Oliver"
+                "Kieth", "Babette", "Edgar", "Detra", "Oliver"
         );
 
         names.forEach(name -> userService.save(User.withName(name)));
 
-        userService.getAll().forEach(user -> {
+        for (User user : userService.getAll()) {
             Random random = new Random();
 
-            IntStream.range(0, random.nextInt(5))
-                     .forEach(value ->
-                                      accountService.save(
-                                              Account.builder()
-                                                      .ownerId(user.getId())
-                                                      .number(generateNumber())
-                                                      .currency(generateCcy())
-                                                      .balance(generateBalance())
-                                                      .build()));
-        });
+            int bound = random.nextInt(5);
+            for (int value = 0; value < bound; value++) {
+                accountService.save(
+                        Account.builder()
+                                .ownerId(user.getId())
+                                .number(generateNumber())
+                                .currency(generateCcy())
+                                .balance(generateBalance())
+                                .build());
+            }
+        }
 
         return names;
     }

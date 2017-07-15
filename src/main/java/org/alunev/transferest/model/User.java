@@ -1,12 +1,14 @@
 package org.alunev.transferest.model;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * User, how may have some accounts
  */
 @Builder(toBuilder = true)
+@EqualsAndHashCode
 public class User {
     @Getter
     private final long id;

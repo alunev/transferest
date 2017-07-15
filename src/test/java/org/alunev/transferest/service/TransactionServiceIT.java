@@ -1,6 +1,5 @@
 package org.alunev.transferest.service;
 
-import org.alunev.transferest.db.DbInitializer;
 import org.alunev.transferest.model.Transaction;
 import org.alunev.transferest.service.dbstore.TransactionService;
 import org.junit.Before;

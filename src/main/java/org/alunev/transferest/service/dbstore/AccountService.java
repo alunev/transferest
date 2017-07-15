@@ -3,6 +3,7 @@ package org.alunev.transferest.service.dbstore;
 import com.google.inject.Inject;
 import org.alunev.transferest.db.Sql2oFactory;
 import org.alunev.transferest.model.Account;
+import org.alunev.transferest.model.error.TransferException;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
@@ -13,9 +14,12 @@ public class AccountService {
 
     private final Sql2o sql2o;
 
+    private final UserService userService;
+
     @Inject
-    public AccountService(Sql2oFactory sql2oFactory) {
+    public AccountService(Sql2oFactory sql2oFactory, UserService userService) {
         this.sql2o = sql2oFactory.createSql2o();
+        this.userService = userService;
     }
 
     public List<Account> getByUserId(long userId) {
@@ -39,9 +43,12 @@ public class AccountService {
         return accounts;
     }
 
-    public Account save(Account account) {
+    public Account save(Account account) throws TransferException {
         long key;
-        try (Connection con = sql2o.open()) {
+        try (Connection con = sql2o.beginTransaction()) {
+            userService.getById(account.getOwnerId(), con)
+                    .orElseThrow(() -> new TransferException("no user with id = " + account.getOwnerId()));
+
             key = (Long) con.createQuery(
                     "insert into accounts (ownerId, number, balance, currency, updateTs)"
                     + " values(:ownerId, :number, :balance, :currency, :updateTs)",
@@ -51,6 +58,8 @@ public class AccountService {
                             .bind(account)
                             .executeUpdate()
                             .getKey();
+
+            con.commit();
         }
 
         return account.toBuilder()

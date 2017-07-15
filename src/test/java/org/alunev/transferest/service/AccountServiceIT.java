@@ -1,7 +1,10 @@
 package org.alunev.transferest.service;
 
 import org.alunev.transferest.model.Account;
+import org.alunev.transferest.model.User;
+import org.alunev.transferest.model.error.TransferException;
 import org.alunev.transferest.service.dbstore.AccountService;
+import org.alunev.transferest.service.dbstore.UserService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,8 +12,12 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AccountServiceIT extends ServiceIT {
 
@@ -21,7 +28,10 @@ public class AccountServiceIT extends ServiceIT {
     public void setUp() throws Exception {
         super.setUp();
 
-        accountService = new AccountService(sql2oFactory);
+        UserService userService = mock(UserService.class);
+        when(userService.getById(anyLong())).thenReturn(Optional.of(User.builder().build()));
+
+        accountService = new AccountService(sql2oFactory, userService);
     }
 
     @Test
@@ -74,6 +84,18 @@ public class AccountServiceIT extends ServiceIT {
         List<Account> accounts = accountService.getByUserId(1);
 
         assertThat(accounts.size()).isEqualTo(2);
+    }
+
+
+    @Test(expected = TransferException.class)
+    public void exceptionIfOwnerNotFound() throws Exception {
+        accountService.save(Account.builder()
+                .number("123-123-123-123")
+                .ownerId(1)
+                .balance(BigDecimal.valueOf(167.02))
+                .currency("USD")
+                .updateTs(Timestamp.valueOf(LocalDateTime.now()))
+                .build());
     }
 
     private void assertAccFields(Account acc, Account savedAcc) {

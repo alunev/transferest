@@ -36,7 +36,7 @@ public class TransactionProcessorIT extends ServiceIT {
         super.setUp();
 
         userService = new UserService(sql2oFactory);
-        accountService = new AccountService(sql2oFactory);
+        accountService = new AccountService(sql2oFactory, userService);
         transactionService = new TransactionService(sql2oFactory);
 
         processor = new TransactionProcessor(sql2oFactory, userService, accountService);
@@ -172,7 +172,7 @@ public class TransactionProcessorIT extends ServiceIT {
                                      .build());
     }
 
-    private Account createAcc(User bob, double balance, String ccy) {
+    private Account createAcc(User bob, double balance, String ccy) throws TransferException {
         return accountService.save(Account.builder()
                                           .ownerId(bob.getId())
                                           .number("456-4444")

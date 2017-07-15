@@ -37,17 +37,17 @@ public class UserService {
         long key;
         try (Connection con = sql2o.open()) {
             key = (Long) con.createQuery("insert into users(name) values (:name)",
-                                         "insert_user",
-                                         true
+                    "insert_user",
+                    true
             )
-                            .addParameter("name", user.getName())
-                            .executeUpdate()
-                            .getKey();
+                    .addParameter("name", user.getName())
+                    .executeUpdate()
+                    .getKey();
         }
 
         return user.toBuilder()
-                   .id(key)
-                   .build();
+                .id(key)
+                .build();
     }
 
     public Optional<User> getById(long id) {
@@ -65,8 +65,8 @@ public class UserService {
                 "select * from users where id = :id",
                 "select_user"
         )
-                   .addParameter("id", id)
-                   .executeAndFetch(User.class);
+                .addParameter("id", id)
+                .executeAndFetch(User.class);
 
         return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
     }
@@ -77,9 +77,39 @@ public class UserService {
                 "select * from users where name = :name",
                 "select_user_by_name"
         )
-                   .addParameter("name", name)
-                   .executeAndFetch(User.class);
+                .addParameter("name", name)
+                .executeAndFetch(User.class);
 
         return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
+    }
+
+    public Optional<User> update(User user) {
+        try (Connection con = sql2o.open()) {
+            con.createQuery(
+                    "update users set name = :name where id = :id",
+                    "update_user"
+            )
+                    .addParameter("name", user.getName())
+                    .addParameter("id", user.getId())
+                    .executeUpdate()
+                    .commit();
+        }
+
+        return getById(user.getId());
+    }
+
+    public Optional<User> delete(long id) {
+        Optional<User> user = getById(id);
+
+        try (Connection con = sql2o.open()) {
+            con.createQuery(
+                    "delete from users where id = :id",
+                    "delte_user"
+            )
+                    .addParameter("id", id)
+                    .executeUpdate();
+        }
+
+        return user;
     }
 }

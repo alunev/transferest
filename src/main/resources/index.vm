@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 50px;
+        }
+
+        .starter-template {
+            padding: 40px 15px;
+            /*text-align: center;*/
+        }
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <title>Transfers test page</title>
+</head>
+
+<body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Transferest</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container">
+    <div class="starter-template">
+        <h2>Operations</h2>
+        <h3>Generation</h3>
+        <div class="row">
+            <div class="col-sm-offset-1">
+                <a class="btn btn-default" href="/generate/data">Generate Users with Accounts</a>
+                <a class="btn btn-default" href="/generate/transactions">Generate Some transactions</a>
+            </div>
+        </div>
+
+        <h3>Users and accounts</h3>
+        <div class="row">
+            <div class="col-sm-6">
+                <form id="user_form" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="user_id">/v1/users/</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="user_id" placeholder="ID">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="json">Json</label>
+                        <div class="col-sm-10">
+                    <textarea class="form-control" rows="5" id="user_json">
+{
+    "id":1,
+    "name":"Novella"
+}
+                    </textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button id="user_post" type="button" class="btn btn-default">POST</button>
+                            <button id="user_put" type="button" class="btn btn-default">PUT</button>
+                            <button id="user_delete" type="button" class="btn btn-default">DELETE</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-6">
+                <form id="account_form" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="account_id">/v1/accounts/</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="account_id" placeholder="ID">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="json">Json</label>
+                        <div class="col-sm-10">
+                    <textarea class="form-control" rows="5" id="account_json">
+{
+    "id":7,
+    "ownerId":3,
+    "number":"08430-04042",
+    "balance":4212.50,
+    "currency":"USD"
+}
+                    </textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button id="account_post" type="button" class="btn btn-default">POST</button>
+                            <button id="account_put" type="button" class="btn btn-default">PUT</button>
+                            <button id="account_delete" type="button" class="btn btn-default">DELETE</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <form id="transaction_form" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="transaction_id">/v1/transactions</label>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="json">Json</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="5" id="transaction_json">
+{
+    "id":0,
+    "senderAccId":1,
+    "receiverAccId":2,
+    "sendAmount":42.42,
+    "receiveAmount":2.2
+}
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button id="transaction_post" type="button" class="btn btn-default">POST</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-6">
+                <form id="txrequest_form" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="txrequest_id">/v1/transactions/request</label>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-sm-2" for="json">Json</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="5" id="txrequest_json">
+{
+    "senderName":"Ed",
+    "receiverName":"Detra",
+    "amount":900.00,
+    "ccy":RUB
+}
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button id="txrequest_post" type="button" class="btn btn-default">POST</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <h2>Status</h2>
+    <h3>Users</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>GET</th>
+            <th>Accounts</th>
+        </tr>
+        </thead>
+        <tbody>
+            #foreach($user in $users)
+            <tr>
+                <td>
+                    $user.getId()
+                </td>
+                <td>
+                    $user.getName()
+                </td>
+                <td>
+                    <a href="/v1/users/$user.getId()">/v1/users/$user.getId()</a>
+                </td>
+                <td>
+                    #foreach($account in $userAccounts.get($user))
+                        <a href="/v1/accounts/$account.getId()">$account.getCurrency()
+                            /v1/accounts/$account.getId()</a><br/>
+                    #end
+                </td>
+            </tr>
+            #end
+        </tbody>
+    </table>
+
+    <h3>Transactions</h3>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Sender Account</th>
+            <th>Receiver Account</th>
+            <th>Send Amount</th>
+            <th>Receive Amount</th>
+        </tr>
+        </thead>
+        <tbody>
+            #foreach($tx in $transactions)
+            <tr>
+                <td>
+                    $tx.getId()
+                </td>
+                <td>
+                    $tx.getSenderAccId()
+                </td>
+                <td>
+                    $tx.getReceiverAccId()
+                </td>
+                <td>
+                    $tx.getSendAmount()
+                </td>
+                <td>
+                    $tx.getReceiveAmount()
+                </td>
+            </tr>
+            #end
+        </tbody>
+    </table>
+</div>
+
+</div><!-- /.container -->
+
+<script>
+    $(function () {
+        $("#user_post").click(function (event) {
+            doPost("/v1/users", $("#user_json").val());
+            event.preventDefault();
+        });
+
+        $("#user_put").click(function (event) {
+            doPut("/v1/users/" + $("#user_id").val(), $("#user_json").val());
+            event.preventDefault();
+        });
+
+        $("#user_delete").click(function (event) {
+            doDelete("/v1/users/" + $("#user_id").val());
+            event.preventDefault();
+        });
+
+        $("#account_post").click(function (event) {
+            doPost("/v1/accounts", $("#account_json").val());
+            event.preventDefault();
+        });
+
+        $("#account_put").click(function (event) {
+            doPut("/v1/users/" + $("#account_id").val(), $("#account_json").val());
+            event.preventDefault();
+        });
+
+        $("#account_delete").click(function (event) {
+            doDelete("/v1/users/" + $("#account_id").val());
+            event.preventDefault();
+        });
+
+        $("#transaction_post").click(function (event) {
+            doPost("/v1/transactions", $("#transaction_json").val());
+            event.preventDefault();
+        });
+
+        $("#txrequest_post").click(function (event) {
+            doPost("/v1/transactions/request", $("#txrequest_json").val());
+            event.preventDefault();
+        });
+    });
+
+    function doPost(url, data) {
+        doCall("POST", url, data)
+    }
+
+    function doPut(url, data) {
+        doCall("PUT", url, data)
+    }
+
+    function doDelete(url) {
+        doCall("DELETE", url, "{}")
+    }
+
+    function doCall(type, url, data) {
+        $.ajax({
+            type: type,
+            url: url,
+            data: JSON.stringify(JSON.parse(data)),// now data come in this function
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+
+            success: function (data, textStatus, jqXHR) {
+                location.reload(true);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert('failed ' + type + ' call to ' + url + ' with code: ' + status.code + ' message: ' + xhr.responseText);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
+
+

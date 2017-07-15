@@ -1,8 +1,6 @@
 package org.alunev.transferest.service;
 
-import org.alunev.transferest.db.DbInitializer;
 import org.alunev.transferest.model.User;
-import org.alunev.transferest.model.User.UserBuilder;
 import org.alunev.transferest.service.dbstore.UserService;
 import org.junit.Before;
 import org.junit.Test;
