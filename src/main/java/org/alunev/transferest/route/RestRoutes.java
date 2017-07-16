@@ -10,12 +10,10 @@ import org.alunev.transferest.model.User;
 import org.alunev.transferest.model.error.TransferException;
 import org.alunev.transferest.model.error.UnexpectedException;
 import org.alunev.transferest.service.dbstore.AccountService;
+import org.alunev.transferest.service.dbstore.TransactionService;
 import org.alunev.transferest.service.dbstore.UserService;
 import org.alunev.transferest.service.processor.TransactionProcessor;
 
-import java.math.BigDecimal;
-
-import static com.google.common.base.Throwables.getStackTraceAsString;
 import static org.alunev.transferest.util.JsonUtil.fromJson;
 import static org.alunev.transferest.util.JsonUtil.toJson;
 import static spark.Spark.delete;
@@ -29,14 +27,17 @@ public class RestRoutes {
 
     private final UserService userService;
     private final AccountService accountService;
+    private final TransactionService transactionService;
     private final TransactionProcessor transactionProcessor;
 
     @Inject
     public RestRoutes(UserService userService,
                       AccountService accountService,
+                      TransactionService transactionService,
                       TransactionProcessor transactionProcessor) {
         this.userService = userService;
         this.accountService = accountService;
+        this.transactionService = transactionService;
         this.transactionProcessor = transactionProcessor;
     }
 
@@ -51,7 +52,7 @@ public class RestRoutes {
                 toJson()
         );
         post("/v1/users",
-                (req, res) -> userService.save(fromJson(req.body(), User.class)),
+                (req, res) -> userService.create(fromJson(req.body(), User.class)),
                 toJson()
         );
         put("/v1/users/:id",
@@ -79,16 +80,48 @@ public class RestRoutes {
         get("/v1/users/:id/accounts", (req, res) ->
                 accountService.getByUserId(Long.parseLong(req.params(":id"))), toJson());
         get("/v1/users/:id/accounts/:accId", (req, res) ->
-                accountService.getById(Long.parseLong(req.params(":accId"))), toJson());
-
-        get("/v1/accounts/:accId", (req, res) ->
-                accountService.getById(Long.parseLong(req.params(":accId"))).orElseThrow(
-                        () -> new TransferException("account not found")
-                ), toJson()
+                        accountService.getById(Long.parseLong(req.params(":accId")))
+                                .orElseThrow(() -> new TransferException("account not found")),
+                toJson()
         );
 
-        post("/v1/users/:id/accounts",
-                (req, res) -> accountService.save(fromJson(req.body(), Account.class)),
+        get("/v1/accounts/:accId", (req, res) ->
+                        accountService.getById(Long.parseLong(req.params(":accId")))
+                                .orElseThrow(() -> new TransferException("account not found")),
+                toJson()
+        );
+
+        post("/v1/accounts",
+                (req, res) -> accountService.create(fromJson(req.body(), Account.class)),
+                toJson()
+        );
+
+        put("/v1/accounts/:id",
+                (req, res) -> {
+                    Account account = fromJson(req.body(), Account.class).toBuilder()
+                            .id(Long.parseLong(req.params("id")))
+                            .build();
+
+                    accountService.update(account)
+                            .orElseThrow(() -> new TransferException("account not found"));
+
+                    return "{}";
+                }
+        );
+
+        delete("/v1/accounts/:id",
+                (req, res) -> {
+                    accountService.delete(Long.parseLong(req.params(":id")))
+                            .orElseThrow(() -> new TransferException("account not found"));
+
+                    return "{}";
+                }
+        );
+
+
+        get("/v1/transactions/:id", (req, res) ->
+                        transactionService.getById(Long.parseLong(req.params(":id")))
+                                .orElseThrow(() -> new TransferException("transaction not found")),
                 toJson()
         );
 
@@ -112,10 +145,11 @@ public class RestRoutes {
             response.body(toJson(exception));
         });
         exception(Exception.class, (exception, request, response) -> {
-            log.error("Exception on " + request.url(), exception);
+            String message = "Exception on " + request.url();
+            log.error(message, exception);
 
             response.status(500);
-            response.body(toJson(new UnexpectedException(getStackTraceAsString(exception))));
+            response.body(toJson(new UnexpectedException(message, exception)));
         });
     }
 }

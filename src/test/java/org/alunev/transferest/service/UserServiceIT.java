@@ -23,26 +23,37 @@ public class UserServiceIT extends ServiceIT {
 
     @Test
     public void canSaveUsers() throws Exception {
-        User user = userService.save(User.withName("Bob"));
+        User user = userService.create(User.withName("Bob"));
 
         assertThat(user.getId()).isEqualTo(0);
         assertThat(user.getName()).isEqualTo("Bob");
 
 
-        user = userService.save(User.withName("Bob-1"));
+        user = userService.create(User.withName("Bob-1"));
 
         assertThat(user.getId()).isEqualTo(1);
         assertThat(user.getName()).isEqualTo("Bob-1");
 
-        user = userService.save(User.withName("Bob-2"));
+        user = userService.create(User.withName("Bob-2"));
 
         assertThat(user.getId()).isEqualTo(2);
         assertThat(user.getName()).isEqualTo("Bob-2");
     }
 
+    @Test
+    public void canUpdateUser() throws Exception {
+        User user = userService.create(User.withName("Bob"));
+
+        userService.update(user.toBuilder().name("Bob-1").build());
+
+        user = userService.getById(user.getId()).get();
+
+        assertThat(user.getName()).isEqualTo("Bob-1");
+    }
+
     @Test(expected = Sql2oException.class)
     public void errorOnDuplicateUser() throws Exception {
-        userService.save(User.withName("Bob"));
-        userService.save(User.withName("Bob"));
+        userService.create(User.withName("Bob"));
+        userService.create(User.withName("Bob"));
     }
 }

@@ -31,53 +31,92 @@ public class AccountService {
         return accounts;
     }
 
-    private List<Account> getByUserId(long userId, Connection con) {
+    public List<Account> getByUserId(long userId, Connection con) {
         List<Account> accounts;
         accounts = con.createQuery(
                 "select * from accounts where ownerId = :ownerId",
                 "select_accounts_for_user"
         )
-                      .addParameter("ownerId", userId)
-                      .executeAndFetch(Account.class);
+                .addParameter("ownerId", userId)
+                .executeAndFetch(Account.class);
 
         return accounts;
     }
 
-    public Account save(Account account) throws TransferException {
+    public Optional<Account> getById(long id) {
+        Optional<Account> account;
+        try (Connection con = sql2o.open()) {
+            account = getById(id, con);
+        }
+
+        return account;
+    }
+
+    public Optional<Account> getById(long id, Connection con) {
+        return con.createQuery(
+                "select * from accounts where id = :id",
+                "select_account"
+        )
+                .addParameter("id", id)
+                .executeAndFetch(Account.class)
+                .stream()
+                .findFirst();
+    }
+
+    public Account create(Account account) throws TransferException {
         long key;
         try (Connection con = sql2o.beginTransaction()) {
             userService.getById(account.getOwnerId(), con)
                     .orElseThrow(() -> new TransferException("no user with id = " + account.getOwnerId()));
 
             key = (Long) con.createQuery(
-                    "insert into accounts (ownerId, number, balance, currency, updateTs)"
-                    + " values(:ownerId, :number, :balance, :currency, :updateTs)",
+                    "insert into accounts (ownerId, number, balance, currency)"
+                            + " values(:ownerId, :number, :balance, :currency)",
                     "insert_account",
                     true
             )
-                            .bind(account)
-                            .executeUpdate()
-                            .getKey();
+                    .bind(account)
+                    .executeUpdate()
+                    .getKey();
 
             con.commit();
         }
 
         return account.toBuilder()
-                      .id(key)
-                      .build();
+                .id(key)
+                .build();
     }
 
-    public Optional<Account> getById(long id) {
-        List<Account> accounts;
+    public Optional<Account> update(Account account) {
         try (Connection con = sql2o.open()) {
-            accounts = con.createQuery(
-                    "select * from accounts where id = :id",
-                    "select_account"
-            )
-                          .addParameter("id", id)
-                          .executeAndFetch(Account.class);
+            update(account, con);
         }
 
-        return accounts.isEmpty() ? Optional.empty() : Optional.of(accounts.get(0));
+        return getById(account.getId());
+    }
+
+    public void update(Account account, Connection con) {
+        con.createQuery(
+                "update accounts set ownerId = :ownerId, number = :number, balance = :balance, " +
+                        "currency = :currency where id = :id",
+                "update_account"
+        )
+                .bind(account)
+                .executeUpdate();
+    }
+
+    public Optional<Account> delete(long id) {
+        Optional<Account> account = getById(id);
+
+        try (Connection con = sql2o.open()) {
+            con.createQuery(
+                    "delete from accounts where id = :id",
+                    "delte_account"
+            )
+                    .addParameter("id", id)
+                    .executeUpdate();
+        }
+
+        return account;
     }
 }

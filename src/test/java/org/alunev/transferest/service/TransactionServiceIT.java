@@ -74,7 +74,6 @@ public class TransactionServiceIT extends ServiceIT {
     private void assertTxFields(Transaction newTx, Transaction tx) {
         assertThat(tx.getSendAmount()).isEqualTo(newTx.getSendAmount());
         assertThat(tx.getReceiveAmount()).isEqualTo(newTx.getReceiveAmount());
-        assertThat(tx.getUpdateTs()).isEqualTo(newTx.getUpdateTs());
     }
 
 }

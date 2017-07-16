@@ -30,13 +30,4 @@ public class Account {
 
     @Getter
     private final Timestamp updateTs;
-
-    private Account(long id, long ownerId, String number, BigDecimal balance, String currency, Timestamp updateTs) {
-        this.id = id;
-        this.ownerId = ownerId;
-        this.number = number;
-        this.balance = balance;
-        this.currency = currency;
-        this.updateTs = updateTs;
-    }
 }

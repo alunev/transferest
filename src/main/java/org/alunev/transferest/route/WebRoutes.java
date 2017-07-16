@@ -56,8 +56,16 @@ public class WebRoutes {
         );
 
         get("/ping", (req, res) -> "pong");
+
         get("/generate/data", (req, res) -> {
             generationService.generateSomeUsersWithAccounts();
+            res.redirect("/");
+
+            return "";
+        });
+
+        get("/generate/transactions", (req, res) -> {
+            generationService.generateSomeTransactions();
             res.redirect("/");
 
             return "";

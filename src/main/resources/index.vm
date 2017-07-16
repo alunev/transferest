@@ -35,15 +35,8 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Transferest</a>
+            <a class="navbar-brand active" href="#">Transferest</a>
         </div>
-        <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </div><!--/.nav-collapse -->
     </div>
 </nav>
 
@@ -59,13 +52,16 @@
         </div>
 
         <h3>Users and accounts</h3>
+        <div id="error" style="display: none;" class="alert alert-warning display:none"></div>
+        <div id="success" style="display: none;" class="alert alert-success display:none"></div>
+
         <div class="row">
             <div class="col-sm-6">
                 <form id="user_form" class="form-horizontal">
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="user_id">/v1/users/</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" id="user_id" placeholder="ID">
+                            <input type="text" class="form-control" id="user_id" placeholder="ID for PUT, DELETE">
                         </div>
                     </div>
                     <div class="form-group">
@@ -94,7 +90,7 @@
                     <div class="form-group">
                         <label class="control-label col-sm-2" for="account_id">/v1/accounts/</label>
                         <div class="col-sm-10">
-                            <input type="text" class="form-control" id="account_id" placeholder="ID">
+                            <input type="text" class="form-control" id="account_id" placeholder="ID for PUT, DELETE">
                         </div>
                     </div>
                     <div class="form-group">
@@ -164,7 +160,7 @@
     "senderName":"Ed",
     "receiverName":"Detra",
     "amount":900.00,
-    "ccy":RUB
+    "currency":"RUB"
 }
                             </textarea>
                         </div>
@@ -205,8 +201,9 @@
                 </td>
                 <td>
                     #foreach($account in $userAccounts.get($user))
-                        <a href="/v1/accounts/$account.getId()">$account.getCurrency()
-                            /v1/accounts/$account.getId()</a><br/>
+                        <a href="/v1/accounts/$account.getId()">
+                            $account.getBalance() $account.getCurrency() /v1/accounts/$account.getId()
+                        </a><br/>
                     #end
                 </td>
             </tr>
@@ -223,6 +220,8 @@
             <th>Receiver Account</th>
             <th>Send Amount</th>
             <th>Receive Amount</th>
+            <th>GET</th>
+            <th>Update TS</th>
         </tr>
         </thead>
         <tbody>
@@ -243,6 +242,12 @@
                 <td>
                     $tx.getReceiveAmount()
                 </td>
+                <td>
+                    <a href="/v1/transactions/$tx.getId()">/v1/transactions/$tx.getId()</a>
+                </td>
+                <td>
+                    $!tx.getUpdateTs()
+                </td>
             </tr>
             #end
         </tbody>
@@ -253,6 +258,9 @@
 
 <script>
     $(function () {
+        $("#error").text("");
+        $("#error").hide();
+
         $("#user_post").click(function (event) {
             doPost("/v1/users", $("#user_json").val());
             event.preventDefault();
@@ -274,12 +282,12 @@
         });
 
         $("#account_put").click(function (event) {
-            doPut("/v1/users/" + $("#account_id").val(), $("#account_json").val());
+            doPut("/v1/accounts/" + $("#account_id").val(), $("#account_json").val());
             event.preventDefault();
         });
 
         $("#account_delete").click(function (event) {
-            doDelete("/v1/users/" + $("#account_id").val());
+            doDelete("/v1/accounts/" + $("#account_id").val());
             event.preventDefault();
         });
 
@@ -318,7 +326,8 @@
                 location.reload(true);
             },
             error: function (xhr, ajaxOptions, thrownError) {
-                alert('failed ' + type + ' call to ' + url + ' with code: ' + status.code + ' message: ' + xhr.responseText);
+                $("#error").text('Failed to ' + type + ' on ' + url + ' with code: ' + status.code + '. Response: ' + xhr.responseText);
+                $("#error").show();
             }
         });
     }

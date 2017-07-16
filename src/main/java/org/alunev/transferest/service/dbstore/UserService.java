@@ -33,7 +33,38 @@ public class UserService {
         return allUsers;
     }
 
-    public User save(User user) {
+    public Optional<User> getById(long id) {
+        Optional<User> user;
+        try (Connection con = sql2o.open()) {
+            user = getById(id, con);
+        }
+
+        return user;
+    }
+
+    public Optional<User> getById(long id, Connection con) {
+        return con.createQuery(
+                "select * from users where id = :id",
+                "select_user"
+        )
+                .addParameter("id", id)
+                .executeAndFetch(User.class)
+                .stream()
+                .findFirst();
+    }
+
+    public Optional<User> getByName(String name, Connection con) {
+        return con.createQuery(
+                "select * from users where name = :name",
+                "select_user_by_name"
+        )
+                .addParameter("name", name)
+                .executeAndFetch(User.class)
+                .stream()
+                .findFirst();
+    }
+
+    public User create(User user) {
         long key;
         try (Connection con = sql2o.open()) {
             key = (Long) con.createQuery("insert into users(name) values (:name)",
@@ -50,52 +81,23 @@ public class UserService {
                 .build();
     }
 
-    public Optional<User> getById(long id) {
-        Optional<User> user;
-        try (Connection con = sql2o.open()) {
-            user = getById(id, con);
-        }
-
-        return user;
-    }
-
-    public Optional<User> getById(long id, Connection con) {
-        List<User> users;
-        users = con.createQuery(
-                "select * from users where id = :id",
-                "select_user"
-        )
-                .addParameter("id", id)
-                .executeAndFetch(User.class);
-
-        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
-    }
-
-    public Optional<User> getByName(String name, Connection con) {
-        List<User> users;
-        users = con.createQuery(
-                "select * from users where name = :name",
-                "select_user_by_name"
-        )
-                .addParameter("name", name)
-                .executeAndFetch(User.class);
-
-        return users.isEmpty() ? Optional.empty() : Optional.of(users.get(0));
-    }
-
     public Optional<User> update(User user) {
-        try (Connection con = sql2o.open()) {
+        Optional<User> updated;
+        try (Connection con = sql2o.beginTransaction()) {
             con.createQuery(
                     "update users set name = :name where id = :id",
                     "update_user"
             )
                     .addParameter("name", user.getName())
                     .addParameter("id", user.getId())
-                    .executeUpdate()
-                    .commit();
+                    .executeUpdate();
+
+            updated = getById(user.getId(), con);
+
+            con.commit();
         }
 
-        return getById(user.getId());
+        return updated;
     }
 
     public Optional<User> delete(long id) {

@@ -39,13 +39,13 @@ public class TransactionProcessorIT extends ServiceIT {
         accountService = new AccountService(sql2oFactory, userService);
         transactionService = new TransactionService(sql2oFactory);
 
-        processor = new TransactionProcessor(sql2oFactory, userService, accountService);
+        processor = new TransactionProcessor(sql2oFactory, userService, accountService, transactionService);
     }
 
     @Test
     public void success() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         Account rubAcc = createAcc(bob, 100.00, "RUB");
         Account usdAcc = createAcc(alice, 5.00, "USD");
@@ -62,8 +62,8 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test(expected = TransferException.class)
     public void insufficientBalance() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         Account rubAcc = createAcc(bob, 10.00, "RUB");
         Account usdAcc = createAcc(alice, 5.00, "USD");
@@ -88,8 +88,8 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test
     public void transactionSavedInLog() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         Account rubAcc = createAcc(bob, 100.00, "RUB");
         Account usdAcc = createAcc(alice, 1.00, "USD");
@@ -108,8 +108,8 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test
     public void successTransferByName() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         Account bobAcc = createAcc(bob, 100.00, "USD");
         Account aliceAcc = createAcc(alice, 1.00, "USD");
@@ -128,7 +128,7 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test(expected = TransferException.class)
     public void wrongNameInTransferRequest() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
+        User bob = userService.create(User.withName("Bob"));
 
         createAcc(bob, 100.00, "USD");
 
@@ -142,8 +142,8 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test(expected = TransferException.class)
     public void wrongAccountCurrencyForTransferRequest() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         createAcc(bob, 100.00, "USD");
         createAcc(alice, 1.00, "EUR");
@@ -158,8 +158,8 @@ public class TransactionProcessorIT extends ServiceIT {
 
     @Test(expected = TransferException.class)
     public void negativeAmount() throws Exception {
-        User bob = userService.save(User.withName("Bob"));
-        User alice = userService.save(User.withName("Alice"));
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
 
         Account rubAcc = createAcc(bob, 10.00, "RUB");
         Account usdAcc = createAcc(alice, 5.00, "USD");
@@ -173,7 +173,7 @@ public class TransactionProcessorIT extends ServiceIT {
     }
 
     private Account createAcc(User bob, double balance, String ccy) throws TransferException {
-        return accountService.save(Account.builder()
+        return accountService.create(Account.builder()
                                           .ownerId(bob.getId())
                                           .number("456-4444")
                                           .balance(BigDecimal.valueOf(balance))

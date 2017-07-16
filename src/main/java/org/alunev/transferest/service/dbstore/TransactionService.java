@@ -19,23 +19,28 @@ public class TransactionService {
     }
 
     public Transaction save(Transaction tx) {
-        long key;
-
+        Transaction transaction;
         try (Connection con = sql2o.open()) {
-            key = (Long) con.createQuery(
-                    "insert into transactions (senderAccId, receiverAccId, sendAmount, receiveAmount, updateTs)"
-                    + " values(:senderAccId, :receiverAccId, :sendAmount, :receiveAmount, :updateTs)",
-                    "insert_transaction",
-                    true
-            )
-                            .bind(tx)
-                            .executeUpdate()
-                            .getKey();
+            transaction = save(tx, con);
         }
 
+        return transaction;
+    }
+
+    public Transaction save(Transaction tx, Connection con) {
+        Long key = (Long) con.createQuery(
+                "insert into transactions (senderAccId, receiverAccId, sendAmount, receiveAmount)"
+                        + " values(:senderAccId, :receiverAccId, :sendAmount, :receiveAmount)",
+                "insert_transaction",
+                true
+        )
+                .bind(tx)
+                .executeUpdate()
+                .getKey();
+
         return tx.toBuilder()
-                 .id(key)
-                 .build();
+                .id(key)
+                .build();
     }
 
     public Optional<Transaction> getById(long id) {
@@ -45,8 +50,8 @@ public class TransactionService {
                     "select * from transactions where id = :id",
                     "select_transaction"
             )
-                              .addParameter("id", id)
-                              .executeAndFetch(Transaction.class);
+                    .addParameter("id", id)
+                    .executeAndFetch(Transaction.class);
         }
 
         return transactions.isEmpty() ? Optional.empty() : Optional.of(transactions.get(0));
