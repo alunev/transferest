@@ -4,12 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.alunev.transferest.model.Account;
-import org.alunev.transferest.model.Transaction;
 import org.alunev.transferest.model.TransactionRequest;
 import org.alunev.transferest.model.User;
 import org.alunev.transferest.model.error.TransferException;
 import org.alunev.transferest.service.dbstore.AccountService;
-import org.alunev.transferest.service.dbstore.TransactionService;
 import org.alunev.transferest.service.dbstore.UserService;
 import org.alunev.transferest.service.processor.TransactionProcessor;
 
@@ -23,20 +21,17 @@ public class GenerationService {
     private final UserService userService;
     private final AccountService accountService;
     private final TransactionProcessor transactionProcessor;
-    private final TransactionService transactionService;
 
     @Inject
     public GenerationService(UserService userService,
                              AccountService accountService,
-                             TransactionProcessor transactionProcessor,
-                             TransactionService transactionService) {
+                             TransactionProcessor transactionProcessor) {
         this.userService = userService;
         this.accountService = accountService;
         this.transactionProcessor = transactionProcessor;
-        this.transactionService = transactionService;
     }
 
-    public List<String> generateSomeUsersWithAccounts() throws TransferException {
+    public void generateSomeUsersWithAccounts() throws TransferException {
         List<String> names = Lists.newArrayList("Bill", "Novella", "Mina", "Ed", "Niki",
                 "Kieth", "Babette", "Edgar", "Detra", "Oliver"
         );
@@ -58,7 +53,6 @@ public class GenerationService {
             }
         }
 
-        return names;
     }
 
     public void generateSomeTransactions() {

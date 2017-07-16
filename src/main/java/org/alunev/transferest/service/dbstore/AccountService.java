@@ -111,7 +111,7 @@ public class AccountService {
         try (Connection con = sql2o.open()) {
             con.createQuery(
                     "delete from accounts where id = :id",
-                    "delte_account"
+                    "delete_account"
             )
                     .addParameter("id", id)
                     .executeUpdate();

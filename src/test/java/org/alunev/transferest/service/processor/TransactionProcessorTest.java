@@ -11,7 +11,7 @@ import org.alunev.transferest.service.dbstore.TransactionService;
 import org.alunev.transferest.service.dbstore.UserService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.stubbing.OngoingStubbing;
+import org.mockito.ArgumentCaptor;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
@@ -24,6 +24,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,13 +34,13 @@ public class TransactionProcessorTest {
     private TransactionProcessor processor;
     private UserService userService;
     private AccountService accountService;
-    private Sql2oFactory sql2oFactory;
 
     @Before
     public void setUp() throws Exception {
         userService = mock(UserService.class);
         accountService = mock(AccountService.class);
-        sql2oFactory = mock(Sql2oFactory.class);
+
+        Sql2oFactory sql2oFactory = mock(Sql2oFactory.class);
 
         Sql2o sql2o = mock(Sql2o.class);
         when(sql2oFactory.createSql2o()).thenReturn(sql2o);
@@ -80,15 +81,21 @@ public class TransactionProcessorTest {
         Transaction transaction = processor.process(TransactionRequest.builder()
                 .senderName("Bob")
                 .receiverName("Alice")
-                .amount(BigDecimal.valueOf(5.05))
+                .amount(BigDecimal.valueOf(5))
                 .currency(Currency.getInstance("USD"))
                 .build());
 
         assertThat(transaction).isNotNull();
         assertThat(transaction.getSenderAccId()).isEqualTo(bobAcc.getId());
         assertThat(transaction.getReceiverAccId()).isEqualTo(aliceAcc.getId());
-        assertThat(transaction.getSendAmount()).isEqualTo(BigDecimal.valueOf(5.05));
-        assertThat(transaction.getReceiveAmount()).isEqualTo(BigDecimal.valueOf(5.05));
+        assertThat(transaction.getSendAmount()).isEqualTo(BigDecimal.valueOf(5));
+        assertThat(transaction.getReceiveAmount()).isEqualTo(BigDecimal.valueOf(5));
+
+        ArgumentCaptor<Account> argument = ArgumentCaptor.forClass(Account.class);
+        verify(accountService, times(2)).update(argument.capture(), any());
+
+        assertThat(argument.getAllValues().get(0).getBalance()).isEqualTo(BigDecimal.valueOf(95.00));
+        assertThat(argument.getAllValues().get(1).getBalance()).isEqualTo(BigDecimal.valueOf(6.00));
     }
 
     private void mockUser(User user) {
@@ -103,7 +110,8 @@ public class TransactionProcessorTest {
         when(accountService.getById(eq(account.getId()), any(Connection.class))).thenReturn(Optional.of(account));
 
         when(accountService.getByUserId(eq(account.getOwnerId()))).thenReturn(ImmutableList.of(account));
-        when(accountService.getByUserId(eq(account.getOwnerId()), any(Connection.class))).thenReturn(ImmutableList.of(account));
+        when(accountService.getByUserId(eq(account.getOwnerId()), any(Connection.class)))
+                .thenReturn(ImmutableList.of(account));
 
         return account;
     }

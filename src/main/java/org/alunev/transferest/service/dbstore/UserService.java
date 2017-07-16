@@ -7,7 +7,6 @@ import org.alunev.transferest.model.User;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +21,7 @@ public class UserService {
     }
 
     public List<User> getAll() {
-        List<User> allUsers = Collections.emptyList();
+        List<User> allUsers;
         try (Connection con = sql2o.open()) {
             allUsers = con.createQuery(
                     "select * from users",
@@ -106,7 +105,7 @@ public class UserService {
         try (Connection con = sql2o.open()) {
             con.createQuery(
                     "delete from users where id = :id",
-                    "delte_user"
+                    "delete_user"
             )
                     .addParameter("id", id)
                     .executeUpdate();

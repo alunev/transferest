@@ -25,7 +25,7 @@ public class DbInitializer {
                             + "id bigint identity primary key, "
                             + "name varchar(256) not null unique"
                             + ")",
-                            "create table users"
+                    "create table users"
             ).executeUpdate();
 
             con.createQuery("create table accounts (" +
@@ -36,7 +36,7 @@ public class DbInitializer {
                             "currency varchar(3), " +
                             "updateTs timestamp(3) default now" +
                             ")",
-                            "create table accounts"
+                    "create table accounts"
             ).executeUpdate();
 
             con.createQuery("create table transactions (" +
@@ -47,7 +47,7 @@ public class DbInitializer {
                             "receiveAmount numeric(20, 2), " +
                             "updateTs timestamp(3) default now" +
                             ")",
-                            "create table transactions"
+                    "create table transactions"
             ).executeUpdate();
         }
     }
@@ -56,16 +56,16 @@ public class DbInitializer {
         try {
             try (Connection con = sql2o.open()) {
                 con.createQuery("drop table users")
-                   .executeUpdate();
+                        .executeUpdate();
 
                 con.createQuery("drop table transactions")
-                   .executeUpdate();
+                        .executeUpdate();
 
                 con.createQuery("drop table accounts")
-                   .executeUpdate();
+                        .executeUpdate();
             }
         } catch (Sql2oException e) {
-            log.error("", e);
+            log.error("failed to drop tables", e);
         }
     }
 

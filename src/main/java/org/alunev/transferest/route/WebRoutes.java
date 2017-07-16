@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static spark.Spark.get;
-import static spark.Spark.staticFileLocation;
 
 public class WebRoutes {
     private final UserService userService;
@@ -40,8 +39,6 @@ public class WebRoutes {
     }
 
     public void addRoutes() {
-        staticFileLocation("/public");
-
         get("/", (req, res) -> {
                     Map<String, Object> model = new HashMap<>();
 
@@ -74,6 +71,6 @@ public class WebRoutes {
 
     private Map<User, List<Account>> getUserAccountsMap() {
         return userService.getAll().stream()
-                .collect(Collectors.toMap(user -> user, user ->accountService.getByUserId(user.getId())));
+                .collect(Collectors.toMap(user -> user, user -> accountService.getByUserId(user.getId())));
     }
 }

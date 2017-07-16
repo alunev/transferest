@@ -60,7 +60,7 @@ public class RestRoutesIT {
 
     @Test
     public void putUserGives200() throws Exception {
-        User user = userService.create(User.withName("Bob"));
+        userService.create(User.withName("Bob"));
 
         assertThat(put("/v1/users/0",
                 toJson(User.builder().id(0).name("Bob-1").build())
