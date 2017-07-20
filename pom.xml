@@ -133,5 +133,10 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>failsafe</artifactId>
+            <version>1.0.4</version>
+        </dependency>
     </dependencies>
 </project>

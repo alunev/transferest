@@ -39,10 +39,17 @@ public class GenerationService {
         names.forEach(name -> userService.create(User.withName(name)));
 
         for (User user : userService.getAll()) {
-            Random random = new Random();
+            generateRandomAccounts(user);
+        }
 
-            int bound = random.nextInt(5);
-            for (int value = 0; value < bound; value++) {
+    }
+
+    private void generateRandomAccounts(User user) {
+        Random random = new Random();
+
+        int bound = random.nextInt(5);
+        for (int value = 0; value < bound; value++) {
+            try {
                 accountService.create(
                         Account.builder()
                                 .ownerId(user.getId())
@@ -50,47 +57,41 @@ public class GenerationService {
                                 .currency(generateCcy())
                                 .balance(generateBalance())
                                 .build());
+            } catch (TransferException e) {
+                log.error("Failed to save account", e);
             }
         }
-
     }
 
     public void generateSomeTransactions() {
         List<User> users = userService.getAll();
-        Random random = new Random();
+
         for (int i = 0; i < 50; i++) {
-            User fromUser = users.get(random.nextInt(users.size()));
-            List<Account> fromAccounts = accountService.getByUserId(fromUser.getId());
+            generateRandomTransaction(users);
+        }
+    }
 
-            if (fromAccounts.isEmpty()) {
-                continue;
-            }
+    private void generateRandomTransaction(List<User> users) {
+        Random random = new Random();
 
-            User toUser = users.get(random.nextInt(users.size()));
-            try {
-                transactionProcessor.process(TransactionRequest.builder()
-                        .senderName(fromUser.getName())
-                        .receiverName(toUser.getName())
-                        .amount(getRandomAmount())
-                        .currency(Currency.getInstance(getRandomCurrency(fromAccounts)))
-                        .build());
-            } catch (TransferException e) {
-                // almost ignore
-                log.debug("Failed to create simulation tx", e);
-            }
-//
-//            toUser = users.get(random.nextInt(users.size()));
-//            List<Account> toAccounts = accountService.getByUserId(toUser.getId());
-//            if (toAccounts.isEmpty()) {
-//                continue;
-//            }
-//
-//            transactionService.save(Transaction.builder()
-//                    .senderAccId(fromAccounts.get(random.nextInt(fromAccounts.size())).getId())
-//                    .receiverAccId(toAccounts.get(random.nextInt(toAccounts.size())).getId())
-//                    .sendAmount(getRandomAmount())
-//                    .receiveAmount(getRandomAmount())
-//                    .build());
+        User fromUser = users.get(random.nextInt(users.size()));
+        List<Account> fromAccounts = accountService.getByUserId(fromUser.getId());
+
+        if (fromAccounts.isEmpty()) {
+            return;
+        }
+
+        User toUser = users.get(random.nextInt(users.size()));
+        try {
+            transactionProcessor.process(TransactionRequest.builder()
+                    .senderName(fromUser.getName())
+                    .receiverName(toUser.getName())
+                    .amount(getRandomAmount())
+                    .currency(Currency.getInstance(getRandomCurrency(fromAccounts)))
+                    .build());
+        } catch (TransferException e) {
+            // almost ignore
+            log.debug("Failed to create simulation tx", e);
         }
     }
 

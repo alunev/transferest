@@ -4,11 +4,14 @@ import com.google.inject.Inject;
 import org.alunev.transferest.db.Sql2oFactory;
 import org.alunev.transferest.model.Account;
 import org.alunev.transferest.model.error.TransferException;
+import org.alunev.transferest.util.RetryUtil;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
 import java.util.List;
 import java.util.Optional;
+
+import static java.sql.Connection.TRANSACTION_SERIALIZABLE;
 
 public class AccountService {
 
@@ -64,23 +67,26 @@ public class AccountService {
     }
 
     public Account create(Account account) throws TransferException {
-        long key;
-        try (Connection con = sql2o.beginTransaction()) {
-            userService.getById(account.getOwnerId(), con)
-                    .orElseThrow(() -> new TransferException("no user with id = " + account.getOwnerId()));
+        long key = RetryUtil.getWithRetry(() -> {
+            try (Connection con = sql2o.beginTransaction(TRANSACTION_SERIALIZABLE)) {
+                userService.getById(account.getOwnerId(), con)
+                        .orElseThrow(() -> new TransferException("no user with id = " + account.getOwnerId()));
 
-            key = (Long) con.createQuery(
-                    "insert into accounts (ownerId, number, balance, currency)"
-                            + " values(:ownerId, :number, :balance, :currency)",
-                    "insert_account",
-                    true
-            )
-                    .bind(account)
-                    .executeUpdate()
-                    .getKey();
+                Long k = (Long) con.createQuery(
+                        "insert into accounts (ownerId, number, balance, currency)"
+                                + " values(:ownerId, :number, :balance, :currency)",
+                        "insert_account",
+                        true
+                )
+                        .bind(account)
+                        .executeUpdate()
+                        .getKey();
 
-            con.commit();
-        }
+                con.commit();
+
+                return k;
+            }
+        });
 
         return account.toBuilder()
                 .id(key)
@@ -99,7 +105,7 @@ public class AccountService {
         con.createQuery(
                 "update accounts set ownerId = :ownerId, number = :number, balance = :balance, " +
                         "currency = :currency where id = :id",
-                "update_account"
+                "update_account " + account.getOwnerId() + " " + account.getBalance()
         )
                 .bind(account)
                 .executeUpdate();

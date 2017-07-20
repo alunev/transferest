@@ -1,5 +1,6 @@
 package org.alunev.transferest.service.processor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.alunev.transferest.model.Account;
 import org.alunev.transferest.model.Transaction;
 import org.alunev.transferest.model.TransactionRequest;
@@ -16,11 +17,16 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Currency;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-
+@Slf4j
 public class TransactionProcessorIT extends ServiceIT {
     private TransactionProcessor processor;
 
@@ -51,13 +57,46 @@ public class TransactionProcessorIT extends ServiceIT {
         Account usdAcc = createAcc(alice, 5.00, "USD");
 
         Transaction transaction = processor.process(Transaction.builder()
-                                                               .senderAccId(rubAcc.getId())
-                                                               .sendAmount(BigDecimal.valueOf(60.00))
-                                                               .receiverAccId(usdAcc.getId())
-                                                               .receiveAmount(BigDecimal.valueOf(1.00))
-                                                               .build());
+                .senderAccId(rubAcc.getId())
+                .sendAmount(BigDecimal.valueOf(60.00))
+                .receiverAccId(usdAcc.getId())
+                .receiveAmount(BigDecimal.valueOf(1.00))
+                .build());
 
         assertThat(transaction).isNotNull();
+    }
+
+    @Test
+    public void testMultiThreadedTxConsistency() throws Exception {
+        User bob = userService.create(User.withName("Bob"));
+        User alice = userService.create(User.withName("Alice"));
+
+        Account bobAcc = createAcc(bob, 100.00, "USD");
+        Account aliceAcc = createAcc(alice, 0.00, "USD");
+
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        Set<Future> futures = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            futures.add(executor.submit(() -> {
+                try {
+                    processor.process(TransactionRequest.builder()
+                            .senderName("Bob")
+                            .receiverName("Alice")
+                            .amount(BigDecimal.valueOf(1.0))
+                            .currency(Currency.getInstance("USD"))
+                            .build());
+                } catch (TransferException e) {
+                    log.error("Error: ", e);
+                }
+            }));
+        }
+
+        for (Future future : futures) {
+            future.get();
+        }
+
+        assertThat(accountService.getById(bobAcc.getId()).get().getBalance()).isEqualTo(new BigDecimal("0.00"));
+        assertThat(accountService.getById(aliceAcc.getId()).get().getBalance()).isEqualTo(new BigDecimal("100.00"));
     }
 
     @Test(expected = TransferException.class)
@@ -69,21 +108,21 @@ public class TransactionProcessorIT extends ServiceIT {
         Account usdAcc = createAcc(alice, 5.00, "USD");
 
         processor.process(Transaction.builder()
-                                     .senderAccId(rubAcc.getId())
-                                     .sendAmount(BigDecimal.valueOf(60.00))
-                                     .receiverAccId(usdAcc.getId())
-                                     .receiveAmount(BigDecimal.valueOf(1.00))
-                                     .build());
+                .senderAccId(rubAcc.getId())
+                .sendAmount(BigDecimal.valueOf(60.00))
+                .receiverAccId(usdAcc.getId())
+                .receiveAmount(BigDecimal.valueOf(1.00))
+                .build());
     }
 
     @Test(expected = TransferException.class)
     public void errorOnUnknownAccount() throws Exception {
         processor.process(Transaction.builder()
-                                     .senderAccId(5)
-                                     .sendAmount(BigDecimal.valueOf(60.00))
-                                     .receiverAccId(6)
-                                     .receiveAmount(BigDecimal.valueOf(1.00))
-                                     .build());
+                .senderAccId(5)
+                .sendAmount(BigDecimal.valueOf(60.00))
+                .receiverAccId(6)
+                .receiveAmount(BigDecimal.valueOf(1.00))
+                .build());
     }
 
     @Test
@@ -95,11 +134,11 @@ public class TransactionProcessorIT extends ServiceIT {
         Account usdAcc = createAcc(alice, 1.00, "USD");
 
         processor.process(Transaction.builder()
-                                     .senderAccId(rubAcc.getId())
-                                     .sendAmount(BigDecimal.valueOf(60.00))
-                                     .receiverAccId(usdAcc.getId())
-                                     .receiveAmount(BigDecimal.valueOf(1.00))
-                                     .build());
+                .senderAccId(rubAcc.getId())
+                .sendAmount(BigDecimal.valueOf(60.00))
+                .receiverAccId(usdAcc.getId())
+                .receiveAmount(BigDecimal.valueOf(1.00))
+                .build());
 
         Optional<Transaction> transaction = transactionService.getById(0);
 
@@ -115,11 +154,11 @@ public class TransactionProcessorIT extends ServiceIT {
         Account aliceAcc = createAcc(alice, 1.00, "USD");
 
         Transaction transaction = processor.process(TransactionRequest.builder()
-                                                                      .senderName("Bob")
-                                                                      .receiverName("Alice")
-                                                                      .amount(BigDecimal.valueOf(5.05))
-                                                                      .currency(Currency.getInstance("USD"))
-                                                                      .build());
+                .senderName("Bob")
+                .receiverName("Alice")
+                .amount(BigDecimal.valueOf(5.05))
+                .currency(Currency.getInstance("USD"))
+                .build());
 
         assertThat(transaction).isNotNull();
         assertThat(transaction.getSenderAccId()).isEqualTo(bobAcc.getId());
@@ -133,11 +172,11 @@ public class TransactionProcessorIT extends ServiceIT {
         createAcc(bob, 100.00, "USD");
 
         processor.process(TransactionRequest.builder()
-                                            .senderName("Bob")
-                                            .receiverName("Alice")
-                                            .amount(BigDecimal.valueOf(5.05))
-                                            .currency(Currency.getInstance("USD"))
-                                            .build());
+                .senderName("Bob")
+                .receiverName("Alice")
+                .amount(BigDecimal.valueOf(5.05))
+                .currency(Currency.getInstance("USD"))
+                .build());
     }
 
     @Test(expected = TransferException.class)
@@ -149,11 +188,11 @@ public class TransactionProcessorIT extends ServiceIT {
         createAcc(alice, 1.00, "EUR");
 
         processor.process(TransactionRequest.builder()
-                                            .senderName("Bob")
-                                            .receiverName("Alice")
-                                            .amount(BigDecimal.valueOf(5.05))
-                                            .currency(Currency.getInstance("USD"))
-                                            .build());
+                .senderName("Bob")
+                .receiverName("Alice")
+                .amount(BigDecimal.valueOf(5.05))
+                .currency(Currency.getInstance("USD"))
+                .build());
     }
 
     @Test(expected = TransferException.class)
@@ -165,21 +204,21 @@ public class TransactionProcessorIT extends ServiceIT {
         Account usdAcc = createAcc(alice, 5.00, "USD");
 
         processor.process(Transaction.builder()
-                                     .senderAccId(rubAcc.getId())
-                                     .sendAmount(BigDecimal.valueOf(-1.00))
-                                     .receiverAccId(usdAcc.getId())
-                                     .receiveAmount(BigDecimal.valueOf(1.00))
-                                     .build());
+                .senderAccId(rubAcc.getId())
+                .sendAmount(BigDecimal.valueOf(-1.00))
+                .receiverAccId(usdAcc.getId())
+                .receiveAmount(BigDecimal.valueOf(1.00))
+                .build());
     }
 
     private Account createAcc(User bob, double balance, String ccy) throws TransferException {
         return accountService.create(Account.builder()
-                                          .ownerId(bob.getId())
-                                          .number("456-4444")
-                                          .balance(BigDecimal.valueOf(balance))
-                                          .currency(ccy)
-                                          .updateTs(Timestamp.valueOf(LocalDateTime.now()))
-                                          .build());
+                .ownerId(bob.getId())
+                .number("456-4444")
+                .balance(BigDecimal.valueOf(balance))
+                .currency(ccy)
+                .updateTs(Timestamp.valueOf(LocalDateTime.now()))
+                .build());
     }
 
 }

@@ -22,6 +22,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -45,7 +46,7 @@ public class TransactionProcessorTest {
         Sql2o sql2o = mock(Sql2o.class);
         when(sql2oFactory.createSql2o()).thenReturn(sql2o);
 
-        when(sql2o.beginTransaction()).thenReturn(mock(Connection.class));
+        when(sql2o.beginTransaction(anyInt())).thenReturn(mock(Connection.class));
         when(sql2o.open()).thenReturn(mock(Connection.class));
 
         TransactionService transactionService = mock(TransactionService.class);

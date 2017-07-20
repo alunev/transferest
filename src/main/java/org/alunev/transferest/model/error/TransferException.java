@@ -1,7 +1,7 @@
 package org.alunev.transferest.model.error;
 
 
-public class TransferException extends Exception {
+public class TransferException extends RuntimeException {
 
     private final String message;
 

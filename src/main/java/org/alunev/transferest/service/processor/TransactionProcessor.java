@@ -10,11 +10,14 @@ import org.alunev.transferest.model.error.TransferException;
 import org.alunev.transferest.service.dbstore.AccountService;
 import org.alunev.transferest.service.dbstore.TransactionService;
 import org.alunev.transferest.service.dbstore.UserService;
+import org.alunev.transferest.util.RetryUtil;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
 import java.math.BigDecimal;
 import java.util.Currency;
+
+import static java.sql.Connection.TRANSACTION_SERIALIZABLE;
 
 public class TransactionProcessor {
     private final Sql2o sql2o;
@@ -37,40 +40,43 @@ public class TransactionProcessor {
     }
 
     public Transaction process(Transaction tx) throws TransferException {
-        Transaction transaction;
-        try (Connection con = sql2o.beginTransaction()) {
-            transaction = process(tx, con);
+        return RetryUtil.getWithRetry(() -> {
+            try (Connection con = sql2o.beginTransaction(TRANSACTION_SERIALIZABLE)) {
+                Transaction transaction = processOnConnection(tx, con);
 
-            con.commit();
-        }
+                con.commit();
 
-        return transaction;
+                return transaction;
+            }
+        });
     }
 
     public Transaction process(TransactionRequest request) throws TransferException {
-        Transaction transaction;
-        try (Connection con = sql2o.beginTransaction()) {
-            Currency ccy = request.getCurrency();
+        return RetryUtil.getWithRetry(() -> {
+            try (Connection con = sql2o.beginTransaction(TRANSACTION_SERIALIZABLE)) {
+                Currency ccy = request.getCurrency();
 
-            Account senderAccount = getUserAccountOfCurrency(con, request.getSenderName(), ccy);
-            Account receiverAccount = getUserAccountOfCurrency(con, request.getReceiverName(), ccy);
+                Account senderAccount = getUserAccountOfCurrency(con, request.getSenderName(), ccy);
+                Account receiverAccount = getUserAccountOfCurrency(con, request.getReceiverName(), ccy);
 
-            transaction = process(
-                    Transaction.builder()
-                            .senderAccId(senderAccount.getId())
-                            .receiverAccId(receiverAccount.getId())
-                            .sendAmount(request.getAmount())
-                            .receiveAmount(request.getAmount())
-                            .build()
-            );
+                Transaction transaction = processOnConnection(
+                        Transaction.builder()
+                                .senderAccId(senderAccount.getId())
+                                .receiverAccId(receiverAccount.getId())
+                                .sendAmount(request.getAmount())
+                                .receiveAmount(request.getAmount())
+                                .build(),
+                        con
+                );
 
-            con.commit();
-        }
+                con.commit();
 
-        return transaction;
+                return transaction;
+            }
+        });
     }
 
-    private Transaction process(Transaction tx, Connection con) throws TransferException {
+    private Transaction processOnConnection(Transaction tx, Connection con) throws TransferException {
         Account senderAccount = getAccount(tx.getSenderAccId(), con);
         BigDecimal senderBalance = senderAccount.getBalance();
 
@@ -122,7 +128,7 @@ public class TransactionProcessor {
                 () -> new TransferException("no user with name = " + name)
         );
 
-        return accountService.getByUserId(sender.getId()).stream()
+        return accountService.getByUserId(sender.getId(), con).stream()
                 .filter(account -> account.getCurrency().equals(ccy.getCurrencyCode()))
                 .findFirst()
                 .orElseThrow(

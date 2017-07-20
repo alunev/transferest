@@ -4,11 +4,14 @@ import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.alunev.transferest.db.Sql2oFactory;
 import org.alunev.transferest.model.User;
+import org.alunev.transferest.util.RetryUtil;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
 
 import java.util.List;
 import java.util.Optional;
+
+import static java.sql.Connection.TRANSACTION_SERIALIZABLE;
 
 @Slf4j
 public class UserService {
@@ -81,22 +84,23 @@ public class UserService {
     }
 
     public Optional<User> update(User user) {
-        Optional<User> updated;
-        try (Connection con = sql2o.beginTransaction()) {
-            con.createQuery(
-                    "update users set name = :name where id = :id",
-                    "update_user"
-            )
-                    .addParameter("name", user.getName())
-                    .addParameter("id", user.getId())
-                    .executeUpdate();
+        return RetryUtil.getWithRetry(() -> {
+            try (Connection con = sql2o.beginTransaction(TRANSACTION_SERIALIZABLE)) {
+                con.createQuery(
+                        "update users set name = :name where id = :id",
+                        "update_user"
+                )
+                        .addParameter("name", user.getName())
+                        .addParameter("id", user.getId())
+                        .executeUpdate();
 
-            updated = getById(user.getId(), con);
+                Optional<User> updated = getById(user.getId(), con);
 
-            con.commit();
-        }
+                con.commit();
 
-        return updated;
+                return updated;
+            }
+        });
     }
 
     public Optional<User> delete(long id) {
